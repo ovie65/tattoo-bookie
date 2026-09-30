@@ -1,5 +1,5 @@
 const TEST_EMAIL = 'scminkofficial5@gmail.com';
-const FROM_EMAIL = 'onboarding@resend.dev';
+const FROM_EMAIL = 'scminkofficial5@gmail.com';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
