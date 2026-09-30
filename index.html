@@ -65,7 +65,7 @@
 
   .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
   .about-image{aspect-ratio:4/5;background:linear-gradient(135deg,#1a1a1a,#000);border-radius:var(--radius);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid var(--ink)}
-  .about-image::after{content:'INK';font-family:'Space Grotesk',sans-serif;font-size:180px;font-weight:800;color:rgba(220,38,38,.15);letter-spacing:.1em}
+  .about-image img{width:100%;height:100%;object-fit:cover}
   .about-text h2{font-size:clamp(32px,4vw,48px);line-height:1.1;margin-bottom:24px}
   .about-text p{font-size:16px;color:var(--muted);line-height:1.8;margin-bottom:20px}
   .about-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px;padding-top:40px;border-top:1px solid var(--line)}
@@ -319,7 +319,9 @@
   <section id="about">
     <div class="container">
       <div class="about-grid">
-        <div class="about-image"></div>
+        <div class="about-image">
+          <img src="yours.jpg" alt="Artist" />
+        </div>
         <div class="about-text">
           <div class="section-label">About the Artist</div>
           <h2 id="aboutTitle">Crafted by hand. Worn for life.</h2>
@@ -385,7 +387,7 @@
           <div class="field">
             <label>Describe Your Tattoo</label>
             <textarea id="fDesc" placeholder="Tell me everything..."></textarea>
-            <div class="field-hint">💡 Please include: Is this a <strong>cover-up or new work</strong>? <strong>Color or black &amp; grey</strong>? <strong>Exact body placement</strong>? Approximate <strong>size</strong>? Any specific ideas, meaning, or references behind the piece?</div>
+            <div class="field-hint"> Please include: Is this a <strong>cover-up or new work</strong>? <strong>Color or black &amp; grey</strong>? <strong>Exact body placement</strong>? Approximate <strong>size</strong>? Any specific ideas, meaning, or references behind the piece?</div>
           </div>
           <div class="checkbox-row"><input type="checkbox" id="fTerms" /><label for="fTerms">I understand that the booking fee is non-refundable. I agree to the cancellation and rescheduling policy.</label></div>
           <div class="form-actions">
@@ -547,11 +549,11 @@
       <div class="admin-tab-content" data-tab="gallery" style="display:none">
         <div class="admin-card">
           <h3>Portfolio Gallery</h3>
-          <p class="admin-card-sub">Upload images of your work.</p>
+          <p class="admin-card-sub">Upload images of your work. Images are auto-compressed to save space.</p>
           <div class="upload-area" id="adminUploadArea">
             <div class="upload-icon">🖼️</div>
             <div class="upload-text">Click to upload gallery images</div>
-            <div class="upload-hint">PNG, JPG · Max 5MB each</div>
+            <div class="upload-hint">PNG, JPG · Max 5MB each · Auto-compressed</div>
             <input type="file" id="adminFileInput" accept="image/*" multiple style="display:none" />
           </div>
           <div class="preview-grid" id="adminGalleryPreview" style="margin-top:20px"></div>
@@ -572,7 +574,7 @@
         <div class="admin-card">
           <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
             <span>All Bookings</span>
-            <button class="admin-reset" id="resetBookingsBtn"> Reset All Bookings</button>
+            <button class="admin-reset" id="resetBookingsBtn">🗑 Reset All Bookings</button>
           </h3>
           <p class="admin-card-sub">Complete record of every booking.</p>
           <div id="bookingsList"></div>
@@ -584,7 +586,7 @@
         <div class="admin-card">
           <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
             <span>Payment Method Breakdown</span>
-            <button class="admin-reset" id="resetAnalyticsBtn">🗑 Reset Analytics</button>
+            <button class="admin-reset" id="resetAnalyticsBtn"> Reset Analytics</button>
           </h3>
           <p class="admin-card-sub">Performance by payment method.</p>
           <div id="analyticsBreakdown"></div>
@@ -629,7 +631,7 @@ const PAYMENT_METHODS = [
   { id:'venmo',   name:'Venmo',         icon:'V',  desc:'Pay via Venmo',         iconClass:'venmo' },
   { id:'cashapp', name:'CashApp',       icon:'$',  desc:'Pay via CashApp',       iconClass:'cashapp' },
   { id:'bank',    name:'Bank Transfer', icon:'🏦', desc:'Direct bank transfer',  iconClass:'bank' },
-  { id:'btc',     name:'Bitcoin',       icon:'',  desc:'Pay with Bitcoin',      iconClass:'btc' }
+  { id:'btc',     name:'Bitcoin',       icon:'₿',  desc:'Pay with Bitcoin',      iconClass:'btc' }
 ];
 
 const DEFAULT_CONTENT = {
@@ -962,6 +964,34 @@ function fileToDataUrl(file){
   });
 }
 
+// Compress image using canvas
+function compressImage(file, maxWidth, quality){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if(width > maxWidth){
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 async function sendBookingEmails(booking){
   const artistEmail = content.artistEmail || TEST_EMAIL;
   const clientEmail = TEST_EMAIL;
@@ -1182,15 +1212,30 @@ const adminFileInput = document.getElementById('adminFileInput');
 adminUploadArea.addEventListener('click', ()=> adminFileInput.click());
 adminFileInput.addEventListener('change', async (e)=>{
   const files = Array.from(e.target.files);
+  let added = 0;
   for(const file of files){
-    if(file.size > 5 * 1024 * 1024){ toast(`${file.name} too large`, 'error'); continue; }
-    const dataUrl = await fileToDataUrl(file);
-    content.gallery.push(dataUrl);
+    if(file.size > 5 * 1024 * 1024){ toast(`${file.name} too large (max 5MB)`, 'error'); continue; }
+    try {
+      const compressed = await compressImage(file, 800, 0.7);
+      content.gallery.push(compressed);
+      added++;
+    } catch(err) {
+      console.error('Image compression failed:', err);
+      toast(`Failed to process ${file.name}`, 'error');
+    }
   }
-  await saveContent();
-  renderAdminGallery();
-  renderPublic();
-  toast('Gallery updated', 'success');
+  if(added > 0){
+    try {
+      await saveContent();
+      renderAdminGallery();
+      renderPublic();
+      toast(`Added ${added} image${added>1?'s':''} ✓`, 'success');
+    } catch(err) {
+      console.error('Save failed:', err);
+      content.gallery.splice(content.gallery.length - added, added);
+      toast('Save failed — storage may be full', 'error');
+    }
+  }
   adminFileInput.value = '';
 });
 
@@ -1279,7 +1324,6 @@ document.querySelectorAll('.admin-save[data-save]').forEach(btn => {
   });
 });
 
-// RESET BUTTONS
 document.getElementById('resetBookingsBtn').addEventListener('click', async ()=>{
   if(!confirm('Are you sure you want to delete ALL bookings? This cannot be undone.')) return;
   bookings = { bookings:[] };
@@ -1372,10 +1416,10 @@ function renderEmailsTab(){
   if(e.length === 0){ list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📧</div><div>No emails sent yet</div></div>'; return; }
   const sorted = [...e].sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
   list.innerHTML = sorted.map(x => `<div class="booking-row">
-    <div><div style="font-weight:600;font-size:13px">${x.subject}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${x.emailType === 'artist_notification' ? '🎨 Artist' : ' Client'} · ${x.bookingId}</div></div>
+    <div><div style="font-weight:600;font-size:13px">${x.subject}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${x.emailType === 'artist_notification' ? ' Artist' : '👤 Client'} · ${x.bookingId}</div></div>
     <div style="font-size:12px">${x.recipientEmail}</div>
     <div style="font-size:12px">${new Date(x.timestamp).toLocaleDateString()}</div>
-    <div><span style="display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:600;background:${x.status==='sent'?'rgba(22,163,74,.1)':'rgba(220,38,38,.1)'};color:${x.status==='sent'?'var(--success)':'var(--danger)'}">${x.status === 'sent' ? '✓ Sent' : ' Failed'}</span></div>
+    <div><span style="display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:600;background:${x.status==='sent'?'rgba(22,163,74,.1)':'rgba(220,38,38,.1)'};color:${x.status==='sent'?'var(--success)':'var(--danger)'}">${x.status === 'sent' ? '✓ Sent' : '✗ Failed'}</span></div>
   </div>`).join('');
 }
 
