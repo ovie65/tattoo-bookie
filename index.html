@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>INK — Tattoo Booking</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5/index.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5/index.css" />
+<style>
+  :root{
+    --bg:#ffffff;
+    --bg-alt:#f7f7f7;
+    --ink:#0a0a0a;
+    --ink-soft:#1a1a1a;
+    --muted:#6b6b6b;
+    --line:#e5e5e5;
+    --accent:#dc2626;
+    --accent-dark:#991b1b;
+    --success:#16a34a;
+    --danger:#dc2626;
+    --radius:14px;
+    --shadow:0 10px 40px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-.02em}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  img{max-width:100%;display:block}
+
+  #bootLoader{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s}
+  #bootLoader.hidden{opacity:0;pointer-events:none}
+  .boot-logo{color:#fff;font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:800;letter-spacing:.3em;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+  .nav{position:sticky;top:0;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);z-index:100}
+  .nav-inner{max-width:1200px;margin:0 auto;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+  .logo{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;letter-spacing:.25em}
+  .logo span{color:var(--accent)}
+  .nav-links{display:flex;gap:32px;align-items:center}
+  .nav-links a{font-size:14px;font-weight:500;color:var(--muted);transition:color .2s}
+  .nav-links a:hover{color:var(--ink)}
+  .btn-book{background:var(--ink);color:#fff;padding:10px 20px;border-radius:100px;font-size:13px;font-weight:600;letter-spacing:.05em;transition:all .2s}
+  .btn-book:hover{background:var(--accent)}
+
+  .hero{min-height:90vh;display:flex;align-items:center;padding:80px 24px;background:#000;color:#fff;position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 70% 30%,rgba(220,38,38,.15),transparent 60%)}
+  .hero-inner{max-width:1200px;margin:0 auto;width:100%;position:relative;z-index:1}
+  .hero-tag{display:inline-block;padding:6px 14px;border:1px solid rgba(255,255,255,.2);border-radius:100px;font-size:12px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:28px;color:rgba(255,255,255,.7)}
+  .hero-tag span{color:var(--accent)}
+  .hero h1{font-size:clamp(48px,8vw,104px);line-height:.95;margin-bottom:24px;max-width:900px}
+  .hero h1 em{font-style:normal;color:var(--accent);font-family:'Space Grotesk',sans-serif}
+  .hero p{font-size:18px;color:rgba(255,255,255,.7);max-width:560px;line-height:1.6;margin-bottom:40px}
+  .hero-actions{display:flex;gap:16px;flex-wrap:wrap}
+  .btn-primary{background:var(--accent);color:#fff;padding:16px 32px;border-radius:100px;font-size:14px;font-weight:600;letter-spacing:.05em;transition:all .2s;display:inline-flex;align-items:center;gap:10px}
+  .btn-primary:hover{background:#fff;color:var(--ink)}
+  .btn-secondary{background:transparent;color:#fff;padding:16px 32px;border-radius:100px;font-size:14px;font-weight:600;letter-spacing:.05em;border:1px solid rgba(255,255,255,.3);transition:all .2s}
+  .btn-secondary:hover{border-color:#fff;background:rgba(255,255,255,.05)}
+
+  section{padding:100px 24px}
+  .container{max-width:1200px;margin:0 auto}
+  .section-label{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:16px}
+  .section-title{font-size:clamp(32px,5vw,56px);line-height:1.05;margin-bottom:20px}
+  .section-sub{font-size:17px;color:var(--muted);max-width:600px;line-height:1.6;margin-bottom:60px}
+
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+  .about-image{aspect-ratio:4/5;background:linear-gradient(135deg,#1a1a1a,#000);border-radius:var(--radius);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .about-image::after{content:'INK';font-family:'Space Grotesk',sans-serif;font-size:180px;font-weight:800;color:rgba(220,38,38,.15);letter-spacing:.1em}
+  .about-text h2{font-size:clamp(32px,4vw,48px);line-height:1.1;margin-bottom:24px}
+  .about-text p{font-size:16px;color:var(--muted);line-height:1.8;margin-bottom:20px}
+  .about-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px;padding-top:40px;border-top:1px solid var(--line)}
+  .stat-num{font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:700;color:var(--ink)}
+  .stat-num span{color:var(--accent)}
+  .stat-label{font-size:12px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+
+  .gallery-section{background:var(--bg-alt)}
+  .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .gallery-item{aspect-ratio:1;background:#1a1a1a;border-radius:var(--radius);overflow:hidden;position:relative;cursor:pointer;transition:transform .3s}
+  .gallery-item:hover{transform:scale(1.02)}
+  .gallery-item img{width:100%;height:100%;object-fit:cover}
+  .gallery-empty{text-align:center;padding:80px 24px;color:var(--muted)}
+
+  .booking-section{background:#000;color:#fff}
+  .booking-section .section-label{color:var(--accent)}
+  .booking-section .section-sub{color:rgba(255,255,255,.6)}
+  .booking-form{max-width:720px;margin:0 auto;background:#fff;color:var(--ink);border-radius:var(--radius);padding:48px;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+  .form-step{display:none}
+  .form-step.active{display:block;animation:fadeIn .4s}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .step-indicator{display:flex;gap:8px;margin-bottom:32px}
+  .step-dot{flex:1;height:3px;background:var(--line);border-radius:2px;transition:background .3s}
+  .step-dot.active{background:var(--accent)}
+  .step-title{font-size:24px;margin-bottom:8px}
+  .step-sub{font-size:14px;color:var(--muted);margin-bottom:32px}
+  .field{margin-bottom:20px}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:8px;letter-spacing:.02em}
+  .field input,.field textarea,.field select{width:100%;padding:14px 16px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;background:#fff;transition:border-color .2s}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--ink)}
+  .field textarea{min-height:140px;resize:vertical;font-family:inherit}
+  .field-hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+  .checkbox-row{display:flex;gap:12px;align-items:flex-start;padding:14px;background:var(--bg-alt);border-radius:10px;margin-bottom:12px;cursor:pointer}
+  .checkbox-row input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+  .checkbox-row label{font-size:13px;color:var(--ink-soft);line-height:1.5;cursor:pointer}
+  .upload-area{border:2px dashed var(--line);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg-alt)}
+  .upload-area:hover{border-color:var(--accent);background:#fff}
+  .upload-area.has-files{border-style:solid;border-color:var(--ink)}
+  .upload-icon{font-size:32px;margin-bottom:8px}
+  .upload-text{font-size:14px;font-weight:500}
+  .upload-hint{font-size:12px;color:var(--muted);margin-top:4px}
+  .preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:16px}
+  .preview-item{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:#000}
+  .preview-item img{width:100%;height:100%;object-fit:cover}
+  .preview-remove{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .form-actions{display:flex;gap:12px;margin-top:32px}
+  .btn{padding:14px 28px;border-radius:100px;font-size:14px;font-weight:600;letter-spacing:.02em;transition:all .2s;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+  .btn-dark{background:var(--ink);color:#fff}
+  .btn-dark:hover{background:var(--accent)}
+  .btn-dark:disabled{background:#ccc;cursor:not-allowed}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .btn-ghost:hover{color:var(--ink);border-color:var(--ink)}
+  .btn-full{width:100%}
+
+  .amount-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  .amount-card{padding:24px;border:2px solid var(--line);border-radius:12px;cursor:pointer;transition:all .2s;text-align:center;background:#fff}
+  .amount-card:hover{border-color:var(--ink)}
+  .amount-card.selected{border-color:var(--accent);background:rgba(220,38,38,.04)}
+  .amount-card-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-weight:600}
+  .amount-card-value{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700}
+  .amount-card-desc{font-size:12px;color:var(--muted);margin-top:6px}
+  .custom-amount{margin-top:12px}
+  .custom-amount input{font-size:20px;text-align:center;font-family:'Space Grotesk',sans-serif;font-weight:700;padding:18px}
+
+  .method-grid{display:grid;gap:10px}
+  .method-card{display:flex;align-items:center;gap:16px;padding:16px;border:2px solid var(--line);border-radius:12px;cursor:pointer;transition:all .2s}
+  .method-card:hover{border-color:var(--ink)}
+  .method-card.selected{border-color:var(--accent);background:rgba(220,38,38,.04)}
+  .method-card.disabled{opacity:.4;cursor:not-allowed}
+  .method-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff;flex-shrink:0}
+  .method-icon.paypal{background:#003087}
+  .method-icon.venmo{background:#008CFF}
+  .method-icon.cashapp{background:#00C244}
+  .method-icon.bank{background:#1a1a1a}
+  .method-icon.btc{background:#F7931A}
+  .method-info{flex:1}
+  .method-name{font-weight:600;font-size:14px}
+  .method-desc{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .slip{background:var(--bg-alt);border-radius:12px;padding:28px;margin-top:24px}
+  .slip-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+  .slip-row:last-child{border-bottom:none}
+  .slip-label{font-size:12px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+  .slip-value{font-weight:600;font-size:14px}
+  .slip-value.large{font-family:'Space Grotesk',sans-serif;font-size:28px;color:var(--accent)}
+  .account-box{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;margin:16px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .account-text{font-family:monospace;font-size:14px;word-break:break-all;flex:1}
+  .copy-btn{padding:8px 14px;background:var(--ink);color:#fff;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;flex-shrink:0}
+  .copy-btn:hover{background:var(--accent)}
+  .copy-btn.copied{background:var(--success)}
+  .slip-warning{background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2);border-radius:10px;padding:14px;font-size:13px;color:var(--accent-dark);margin-top:16px;line-height:1.5}
+
+  .faq-list{max-width:800px;margin:0 auto}
+  .faq-item{border-bottom:1px solid var(--line);padding:24px 0;cursor:pointer}
+  .faq-q{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:600}
+  .faq-q::after{content:'+';font-size:24px;color:var(--accent);transition:transform .3s;font-weight:300}
+  .faq-item.open .faq-q::after{transform:rotate(45deg)}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .3s,padding .3s;color:var(--muted);font-size:15px;line-height:1.7}
+  .faq-item.open .faq-a{max-height:300px;padding-top:16px}
+
+  footer{background:#000;color:#fff;padding:60px 24px 30px}
+  .footer-inner{max-width:1200px;margin:0 auto}
+  .footer-top{display:flex;justify-content:space-between;align-items:center;padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,.1);flex-wrap:wrap;gap:24px}
+  .footer-logo{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;letter-spacing:.25em}
+  .footer-logo span{color:var(--accent)}
+  .social-links{display:flex;gap:12px}
+  .social-link{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s}
+  .social-link:hover{background:var(--accent);border-color:var(--accent)}
+  .footer-bottom{padding-top:24px;text-align:center;font-size:12px;color:rgba(255,255,255,.4);letter-spacing:.05em}
+
+  .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--ink);color:#fff;padding:14px 24px;border-radius:100px;font-size:14px;font-weight:500;z-index:10000;transition:transform .3s;box-shadow:var(--shadow)}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast.success{background:var(--success)}
+  .toast.error{background:var(--danger)}
+
+  #adminPanel{display:none;min-height:100vh;background:var(--bg-alt)}
+  #adminPanel.active{display:block}
+  .admin-header{background:#000;color:#fff;padding:20px 24px;display:flex;justify-content:space-between;align-items:center}
+  .admin-title{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;letter-spacing:.1em}
+  .admin-title span{color:var(--accent)}
+  .admin-container{max-width:1100px;margin:0 auto;padding:32px 24px}
+  .admin-tabs{display:flex;gap:4px;background:#fff;border-radius:12px;padding:6px;margin-bottom:32px;overflow-x:auto;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .admin-tab{padding:12px 20px;border-radius:8px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
+  .admin-tab:hover{color:var(--ink)}
+  .admin-tab.active{background:var(--ink);color:#fff}
+  .admin-card{background:#fff;border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .admin-card h3{font-size:18px;margin-bottom:4px}
+  .admin-card-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+  .admin-field{margin-bottom:16px}
+  .admin-field label{display:block;font-size:12px;font-weight:600;margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .admin-field input,.admin-field textarea{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit}
+  .admin-field textarea{min-height:100px;resize:vertical}
+  .admin-field input:focus,.admin-field textarea:focus{outline:none;border-color:var(--ink)}
+  .admin-save{background:var(--ink);color:#fff;padding:12px 24px;border-radius:8px;font-size:13px;font-weight:600;transition:all .2s}
+  .admin-save:hover{background:var(--accent)}
+  .admin-save.saved{background:var(--success)}
+  .toggle-switch{width:44px;height:24px;background:#ccc;border-radius:100px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+  .toggle-switch::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s}
+  .toggle-switch.on{background:var(--accent)}
+  .toggle-switch.on::after{transform:translateX(20px)}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+  .stat-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .stat-card-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .stat-card-value{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;margin-top:8px}
+  .stat-card-value.accent{color:var(--accent)}
+  .booking-row{display:grid;grid-template-columns:1.5fr 2fr 1fr 1fr auto;gap:16px;padding:16px;background:var(--bg-alt);border-radius:10px;margin-bottom:10px;align-items:center;font-size:13px}
+  .booking-row.header{background:transparent;font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 16px}
+  .booking-name{font-weight:600}
+  .booking-amount{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--accent)}
+  .empty-state{text-align:center;padding:60px 24px;color:var(--muted)}
+  .empty-state-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+  .login-box{max-width:400px;margin:80px auto;background:#fff;padding:40px;border-radius:var(--radius);box-shadow:var(--shadow)}
+  .login-box h2{font-size:24px;margin-bottom:8px;text-align:center}
+  .login-box p{text-align:center;color:var(--muted);font-size:14px;margin-bottom:28px}
+  .login-error{background:rgba(220,38,38,.08);color:var(--danger);padding:10px;border-radius:8px;font-size:13px;margin-bottom:16px;display:none;text-align:center}
+  .login-error.show{display:block}
+
+  @media (max-width:768px){
+    .nav-links a:not(.btn-book){display:none}
+    .about-grid{grid-template-columns:1fr;gap:40px}
+    .gallery-grid{grid-template-columns:repeat(2,1fr)}
+    .booking-form{padding:28px 20px}
+    .amount-grid{grid-template-columns:1fr}
+    .booking-row{grid-template-columns:1fr;gap:8px;text-align:left}
+    .booking-row.header{display:none}
+    section{padding:60px 20px}
+    .hero{padding:60px 20px;min-height:80vh}
+    .about-stats{grid-template-columns:1fr;gap:16px}
+    .footer-top{flex-direction:column;text-align:center}
+  }
+</style>
+</head>
+<body>
+
+<div id="bootLoader"><div class="boot-logo">INK</div></div>
+
+<div id="publicSite">
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="logo">INK<span>.</span></div>
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#gallery">Work</a>
+        <a href="#faq">FAQ</a>
+        <a href="#book" class="btn-book">Book Now</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-tag">Tattoo Artist · <span id="heroLocation">By Appointment</span></div>
+      <h1 id="heroTitle">Ink that <em>tells your story.</em></h1>
+      <p id="heroSub">Custom tattoos crafted with precision. Every piece is designed to be as unique as the person wearing it.</p>
+      <div class="hero-actions">
+        <a href="#book" class="btn-primary">Book a Session →</a>
+        <a href="#gallery" class="btn-secondary">View Work</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-image"></div>
+        <div class="about-text">
+          <div class="section-label">About the Artist</div>
+          <h2 id="aboutTitle">Crafted by hand. Worn for life.</h2>
+          <p id="aboutBio">Loading artist bio...</p>
+          <div class="about-stats">
+            <div><div class="stat-num">10<span>+</span></div><div class="stat-label">Years Experience</div></div>
+            <div><div class="stat-num">2K<span>+</span></div><div class="stat-label">Pieces Done</div></div>
+            <div><div class="stat-num">100<span>%</span></div><div class="stat-label">Sterile Studio</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="gallery" class="gallery-section">
+    <div class="container">
+      <div class="section-label">Portfolio</div>
+      <h2 class="section-title">Selected Work</h2>
+      <p class="section-sub">A glimpse into recent pieces. Every tattoo is custom-designed for the client.</p>
+      <div id="galleryGrid" class="gallery-grid"></div>
+    </div>
+  </section>
+
+  <section id="book" class="booking-section">
+    <div class="container">
+      <div style="text-align:center;margin-bottom:60px">
+        <div class="section-label">Book a Session</div>
+        <h2 class="section-title" style="color:#fff">Let's create something permanent.</h2>
+        <p class="section-sub" style="margin:20px auto 0">A non-refundable booking fee secures your appointment. Serious inquiries only — it saves both your time and mine.</p>
+      </div>
+
+      <div class="booking-form">
+        <div class="step-indicator">
+          <div class="step-dot active" data-step="1"></div>
+          <div class="step-dot" data-step="2"></div>
+          <div class="step-dot" data-step="3"></div>
+          <div class="step-dot" data-step="4"></div>
+        </div>
+
+        <div class="form-step active" data-step="1">
+          <h3 class="step-title">Your Details</h3>
+          <p class="step-sub">Let's start with the basics.</p>
+          <div class="field"><label>Full Name</label><input type="text" id="fName" placeholder="John Doe" /></div>
+          <div class="field"><label>Phone Number</label><input type="tel" id="fPhone" placeholder="+1 555 000 0000" /></div>
+          <div class="field"><label>Email Address</label><input type="email" id="fEmail" placeholder="you@example.com" /></div>
+          <div class="checkbox-row"><input type="checkbox" id="fAge" /><label for="fAge">I confirm that I am 18 years of age or older. A valid ID will be required at the appointment.</label></div>
+          <div class="form-actions"><button class="btn btn-dark btn-full" id="toStep2">Continue →</button></div>
+        </div>
+
+        <div class="form-step" data-step="2">
+          <h3 class="step-title">Your Tattoo</h3>
+          <p class="step-sub">Tell me about the piece you have in mind.</p>
+          <div class="field">
+            <label>Reference Images</label>
+            <div class="upload-area" id="uploadArea">
+              <div class="upload-icon">📎</div>
+              <div class="upload-text">Click to upload images</div>
+              <div class="upload-hint">PNG, JPG up to 5MB each · Max 5 images</div>
+              <input type="file" id="fileInput" accept="image/*" multiple style="display:none" />
+            </div>
+            <div class="preview-grid" id="previewGrid"></div>
+          </div>
+          <div class="field">
+            <label>Describe Your Tattoo</label>
+            <textarea id="fDesc" placeholder="Tell me everything..."></textarea>
+            <div class="field-hint">💡 Please include: Is this a <strong>cover-up or new work</strong>? <strong>Color or black &amp; grey</strong>? <strong>Exact body placement</strong>? Approximate <strong>size</strong>? Any specific ideas, meaning, or references behind the piece?</div>
+          </div>
+          <div class="checkbox-row"><input type="checkbox" id="fTerms" /><label for="fTerms">I understand that the booking fee is non-refundable. I agree to the cancellation and rescheduling policy.</label></div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" id="backTo1">← Back</button>
+            <button class="btn btn-dark btn-full" id="toStep3">Continue →</button>
+          </div>
+        </div>
+
+        <div class="form-step" data-step="3">
+          <h3 class="step-title">Booking Fee</h3>
+          <p class="step-sub">Choose your payment. The booking fee secures your appointment.</p>
+          <div class="amount-grid">
+            <div class="amount-card" data-amount="booking">
+              <div class="amount-card-label">Booking Fee</div>
+              <div class="amount-card-value" id="bookingFeeDisplay">$200</div>
+              <div class="amount-card-desc">Secures your appointment</div>
+            </div>
+            <div class="amount-card" data-amount="custom">
+              <div class="amount-card-label">Full Payment</div>
+              <div class="amount-card-value">Custom</div>
+              <div class="amount-card-desc">Pay the full tattoo cost upfront</div>
+            </div>
+          </div>
+          <div class="custom-amount" id="customAmountBox" style="display:none">
+            <div class="field" style="margin-bottom:0">
+              <label>Enter Full Amount ($)</label>
+              <input type="number" id="customAmountInput" placeholder="800" min="1" />
+              <div class="field-hint">For clients who want to pay the entire tattoo cost upfront.</div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" id="backTo2">← Back</button>
+            <button class="btn btn-dark btn-full" id="toStep4" disabled>Continue →</button>
+          </div>
+        </div>
+
+        <div class="form-step" data-step="4">
+          <h3 class="step-title">Payment Method</h3>
+          <p class="step-sub">How would you like to send the payment?</p>
+          <div class="method-grid" id="methodGrid"></div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" id="backTo3">← Back</button>
+            <button class="btn btn-dark btn-full" id="confirmPayBtn" disabled>Confirm &amp; Pay →</button>
+          </div>
+        </div>
+
+        <div class="form-step" data-step="5">
+          <h3 class="step-title">Send Payment</h3>
+          <p class="step-sub">Send the exact amount to the account below.</p>
+          <div class="slip" id="paymentSlip"></div>
+          <div class="form-actions"><button class="btn btn-dark btn-full" id="paidBtn">I've Sent the Payment ✓</button></div>
+        </div>
+
+        <div class="form-step" data-step="6">
+          <div style="text-align:center;padding:20px 0">
+            <div class="success-icon" style="margin:0 auto 20px;width:64px;height:64px;border-radius:50%;background:rgba(22,163,74,.1);color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:32px">✓</div>
+            <h3 class="step-title">Booking Received</h3>
+            <p style="color:var(--muted);font-size:15px;line-height:1.7;margin-top:12px" id="successMsg">Your confirmation has been received. Please hold tight — details concerning your booking and appointment will be relayed to you via email in due process.</p>
+            <div style="margin-top:28px;padding:16px;background:var(--bg-alt);border-radius:10px;font-size:13px;color:var(--muted)">Reference: <strong id="bookingRef" style="color:var(--ink);font-family:monospace"></strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="container">
+      <div style="text-align:center;margin-bottom:60px">
+        <div class="section-label">FAQ</div>
+        <h2 class="section-title">Common Questions</h2>
+      </div>
+      <div class="faq-list" id="faqList"></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-logo">INK<span>.</span></div>
+        <div class="social-links" id="socialLinks"></div>
+      </div>
+      <div class="footer-bottom">© <span id="year"></span> INK STUDIO · ALL RIGHTS RESERVED</div>
+    </div>
+  </footer>
+</div>
+
+<div id="adminPanel">
+  <div class="admin-header">
+    <div class="admin-title">INK<span>·</span>ADMIN</div>
+    <button class="btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.2);padding:8px 16px;border-radius:8px;font-size:12px" id="logoutBtn">Logout</button>
+  </div>
+  <div id="adminLogin">
+    <div class="login-box">
+      <h2>Admin Access</h2>
+      <p>Enter your credentials to continue.</p>
+      <div class="login-error" id="loginError">Invalid credentials. Try again.</div>
+      <div class="admin-field"><label>Username</label><input type="text" id="loginUser" /></div>
+      <div class="admin-field"><label>Password</label><input type="password" id="loginPass" /></div>
+      <button class="admin-save" style="width:100%;margin-top:8px" id="loginBtn">Sign In</button>
+    </div>
+  </div>
+  <div id="adminDashboard" style="display:none">
+    <div class="admin-container">
+      <div class="admin-tabs">
+        <div class="admin-tab active" data-tab="content">Content</div>
+        <div class="admin-tab" data-tab="booking">Booking</div>
+        <div class="admin-tab" data-tab="payments">Payments</div>
+        <div class="admin-tab" data-tab="gallery">Gallery</div>
+        <div class="admin-tab" data-tab="faq">FAQ</div>
+        <div class="admin-tab" data-tab="bookings">Bookings</div>
+        <div class="admin-tab" data-tab="analytics">Analytics</div>
+        <div class="admin-tab" data-tab="emails">Emails</div>
+      </div>
+
+      <div class="admin-tab-content active" data-tab="content">
+        <div class="admin-card">
+          <h3>Hero Section</h3>
+          <p class="admin-card-sub">The first thing visitors see.</p>
+          <div class="admin-field"><label>Location / Tag</label><input type="text" id="adLocation" /></div>
+          <div class="admin-field"><label>Main Title</label><input type="text" id="adHeroTitle" /></div>
+          <div class="admin-field"><label>Subtitle</label><textarea id="adHeroSub"></textarea></div>
+          <button class="admin-save" data-save="hero">Save Hero</button>
+        </div>
+        <div class="admin-card">
+          <h3>About Section</h3>
+          <p class="admin-card-sub">Tell your story.</p>
+          <div class="admin-field"><label>About Title</label><input type="text" id="adAboutTitle" /></div>
+          <div class="admin-field"><label>About Bio</label><textarea id="adAboutBio" style="min-height:160px"></textarea></div>
+          <button class="admin-save" data-save="about">Save About</button>
+        </div>
+      </div>
+
+      <div class="admin-tab-content" data-tab="booking" style="display:none">
+        <div class="admin-card">
+          <h3>Booking Fee</h3>
+          <p class="admin-card-sub">Set the required booking fee amount.</p>
+          <div class="admin-field"><label>Booking Fee Amount ($)</label><input type="number" id="adBookingFee" min="50" step="10" /></div>
+          <button class="admin-save" data-save="fee">Save Fee</button>
+        </div>
+        <div class="admin-card">
+          <h3>Email Settings</h3>
+          <p class="admin-card-sub">Where booking notifications are sent.</p>
+          <div class="admin-field"><label>Artist Email (receives booking notifications)</label><input type="email" id="adArtistEmail" /></div>
+          <div class="admin-field"><label>Client Confirmation Message</label><textarea id="adConfirmMsg" style="min-height:120px"></textarea></div>
+          <button class="admin-save" data-save="email">Save Email Settings</button>
+        </div>
+      </div>
+
+      <div class="admin-tab-content" data-tab="payments" style="display:none">
+        <div class="admin-card">
+          <h3>Payment Methods</h3>
+          <p class="admin-card-sub">Enable/disable and set account details.</p>
+          <div id="paymentMethodsAdmin"></div>
+          <button class="admin-save" data-save="methods" style="margin-top:16px">Save Payment Methods</button>
+        </div>
+      </div>
+
+      <div class="admin-tab-content" data-tab="gallery" style="display:none">
+        <div class="admin-card">
+          <h3>Portfolio Gallery</h3>
+          <p class="admin-card-sub">Upload images of your work.</p>
+          <div class="upload-area" id="adminUploadArea">
+            <div class="upload-icon">🖼️</div>
+            <div class="upload-text">Click to upload gallery images</div>
+            <div class="upload-hint">PNG, JPG · Max 5MB each</div>
+            <input type="file" id="adminFileInput" accept="image/*" multiple style="display:none" />
+          </div>
+          <div class="preview-grid" id="adminGalleryPreview" style="margin-top:20px"></div>
+        </div>
+      </div>
+
+      <div class="admin-tab-content" data-tab="faq" style="display:none">
+        <div class="admin-card">
+          <h3>FAQ Items</h3>
+          <p class="admin-card-sub">Add, edit, or remove frequently asked questions.</p>
+          <div id="faqAdminList"></div>
+          <button class="admin-save" data-save="faqAdd" style="margin-top:16px;background:var(--accent)">+ Add New FAQ</button>
+        </div>
+      </div>
+
+      <div class="admin-tab-content" data-tab="bookings" style="display:none">
+        <div class="stats-grid" id="bookingsStats"></div>
+        <div class="admin-card">
+          <h3>All Bookings</h3>
+          <p class="admin-card-sub">Complete record of every booking.</p>
+          <div id="bookingsList"></div>
+        </div>
+      </div>
+
+      <div class="admin-tab-content" data-tab="analytics" style="display:none">
+        <div class="stats-grid" id="analyticsStats"></div>
+        <div class="admin-card">
+          <h3>Payment Method Breakdown</h3>
+          <p class="admin-card-sub">Performance by payment method.</p>
+          <div id="analyticsBreakdown"></div>
+        </div>
+      </div>
+
+      <div class="admin-tab-content" data-tab="emails" style="display:none">
+        <div class="admin-card">
+          <h3>Email Logs</h3>
+          <p class="admin-card-sub">All emails sent through the system.</p>
+          <div id="emailsList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+const CLOUD = {
+  CONTENT:   '6abccb18ac6210605a04b53c',
+  ANALYTICS: '6abccb73ac6210605a04b622',
+  BOOKINGS:  '6abccbb2ffd5d160533e57de',
+  EMAILS:    '6abccc14ffd5d160533e58d6',
+  MASTER:    '$2a$10$cLO0wWsxh9xswUHas6CkqOboiQTZpZOAaDYJ.WNrwObtG8M6h55r2',
+  BASE:      'https://api.jsonbin.io/v3/b'
+};
+
+const ADMIN_USER = 'ovie65';
+const ADMIN_PASS = 'Voltovie65$$';
+const TEST_EMAIL = 'scminkofficial5@gmail.com';
+
+const PAYMENT_METHODS = [
+  { id:'paypal',  name:'PayPal',        icon:'P',  desc:'Pay via PayPal',        iconClass:'paypal' },
+  { id:'venmo',   name:'Venmo',         icon:'V',  desc:'Pay via Venmo',         iconClass:'venmo' },
+  { id:'cashapp', name:'CashApp',       icon:'$',  desc:'Pay via CashApp',       iconClass:'cashapp' },
+  { id:'bank',    name:'Bank Transfer', icon:'', desc:'Direct bank transfer',  iconClass:'bank' },
+  { id:'btc',     name:'Bitcoin',       icon:'₿',  desc:'Pay with Bitcoin',      iconClass:'btc' }
+];
+
+const DEFAULT_CONTENT = {
+  location:'By Appointment',
+  heroTitle:'Ink that tells your story.',
+  heroSub:'Custom tattoos crafted with precision. Every piece is designed to be as unique as the person wearing it.',
+  aboutTitle:'Crafted by hand. Worn for life.',
+  aboutBio:'With over a decade behind the machine, I specialize in custom work that blends bold lines with refined detail. Every piece starts with a conversation — your story, your vision, my craft. Sterile studio, professional setup, zero shortcuts.',
+  bookingFee:200,
+  artistEmail: TEST_EMAIL,
+  clientConfirmationMessage:"Your confirmation has been received. Please hold tight — details concerning your booking and appointment will be relayed to you via email in due process.",
+  faq:[
+    { q:'How do I book an appointment?', a:'Fill out the booking form and pay the booking fee. Once received, I\'ll reach out via email to discuss your piece and schedule a date.' },
+    { q:'Is the booking fee refundable?', a:'The booking fee is non-refundable, but it can be applied toward rescheduling with at least 48 hours notice.' },
+    { q:'How far in advance should I book?', a:'I recommend booking at least 2-4 weeks in advance, though popular times fill up faster.' },
+    { q:'Do you do cover-ups?', a:'Yes. Send reference photos of the existing tattoo in the booking form and I\'ll assess what\'s possible.' },
+    { q:'What should I bring to my appointment?', a:'A valid government-issued ID, comfortable clothing, and any reference images we discussed.' }
+  ],
+  gallery:[],
+  social:{ instagram:'', tiktok:'', facebook:'' },
+  payments:{
+    paypal:  { enabled:true, account:'Your PayPal email' },
+    venmo:   { enabled:true, account:'Your Venmo username' },
+    cashapp: { enabled:true, account:'Your CashApp tag' },
+    bank:    { enabled:true, account:'Your bank details' },
+    btc:     { enabled:false, account:'Your Bitcoin wallet' }
+  }
+};
+
+const DEFAULT_ANALYTICS = {
+  pageViews:0, bookingFormOpens:0, totalBookings:0, totalRevenue:0,
+  methods:{
+    paypal:  { shown:0, completed:0, totalAmount:0 },
+    venmo:   { shown:0, completed:0, totalAmount:0 },
+    cashapp: { shown:0, completed:0, totalAmount:0 },
+    bank:    { shown:0, completed:0, totalAmount:0 },
+    btc:     { shown:0, completed:0, totalAmount:0 }
+  }
+};
+
+let content = JSON.parse(JSON.stringify(DEFAULT_CONTENT));
+let analytics = JSON.parse(JSON.stringify(DEFAULT_ANALYTICS));
+let bookings = { bookings:[] };
+let emails = { emails:[] };
+let cloudReady = false;
+
+let currentStep = 1;
+let uploadedImages = [];
+let selectedAmount = 0;
+let selectedAmountType = null;
+let selectedMethod = null;
+let currentBookingRef = '';
+
+async function cloudGet(binId){
+  const r = await fetch(`${CLOUD.BASE}/${binId}/latest`, { headers:{ 'X-Master-Key':CLOUD.MASTER, 'X-Bin-Meta':'false' } });
+  if(!r.ok) throw new Error('GET '+r.status);
+  const d = await r.json();
+  return d.record || d;
+}
+async function cloudPut(binId, data){
+  const r = await fetch(`${CLOUD.BASE}/${binId}`, { method:'PUT', headers:{ 'Content-Type':'application/json', 'X-Master-Key':CLOUD.MASTER }, body: JSON.stringify(data) });
+  if(!r.ok) throw new Error('PUT '+r.status);
+  return true;
+}
+async function saveContent(){ return cloudPut(CLOUD.CONTENT, content); }
+async function saveAnalytics(){ return cloudPut(CLOUD.ANALYTICS, analytics); }
+async function saveBookings(){ return cloudPut(CLOUD.BOOKINGS, bookings); }
+async function saveEmails(){ return cloudPut(CLOUD.EMAILS, emails); }
+
+function toast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type||'');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(()=> t.classList.remove('show'), 2800);
+}
+function hideBoot(){ document.getElementById('bootLoader').classList.add('hidden'); }
+
+function route(){
+  const h = location.hash || '#/';
+  if(h === '#/admin'){
+    document.getElementById('publicSite').style.display = 'none';
+    document.getElementById('adminPanel').classList.add('active');
+    if(sessionStorage.getItem('ink_admin') === 'true') showAdminDash();
+    else showAdminLogin();
+  } else {
+    document.getElementById('publicSite').style.display = 'block';
+    document.getElementById('adminPanel').classList.remove('active');
+  }
+}
+window.addEventListener('hashchange', route);
+
+function renderPublic(){
+  document.getElementById('heroLocation').textContent = content.location;
+  document.getElementById('heroTitle').innerHTML = content.heroTitle.replace(/\*([^*]+)\*/g,'<em>$1</em>');
+  document.getElementById('heroSub').textContent = content.heroSub;
+  document.getElementById('aboutTitle').textContent = content.aboutTitle;
+  document.getElementById('aboutBio').textContent = content.aboutBio;
+  document.getElementById('bookingFeeDisplay').textContent = '$' + content.bookingFee;
+
+  const gg = document.getElementById('galleryGrid');
+  if(content.gallery.length === 0){
+    gg.innerHTML = '<div class="gallery-empty" style="grid-column:1/-1"><div class="empty-state-icon">🖼️</div><div>No portfolio images yet. Check back soon.</div></div>';
+  } else {
+    gg.innerHTML = content.gallery.map(src => `<div class="gallery-item"><img src="${src}" alt="Tattoo work" /></div>`).join('');
+  }
+
+  const fl = document.getElementById('faqList');
+  fl.innerHTML = content.faq.map((f,i) => `<div class="faq-item" data-i="${i}"><div class="faq-q">${f.q}</div><div class="faq-a">${f.a}</div></div>`).join('');
+  fl.querySelectorAll('.faq-item').forEach(el => el.addEventListener('click', ()=> el.classList.toggle('open')));
+
+  const sl = document.getElementById('socialLinks');
+  const socials = [];
+  if(content.social.instagram) socials.push({u:content.social.instagram, l:'IG'});
+  if(content.social.tiktok) socials.push({u:content.social.tiktok, l:'TT'});
+  if(content.social.facebook) socials.push({u:content.social.facebook, l:'FB'});
+  sl.innerHTML = socials.length ? socials.map(s => `<a href="${s.u}" target="_blank" class="social-link">${s.l}</a>`).join('') : '<div style="font-size:12px;color:rgba(255,255,255,.4)">Follow for updates</div>';
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+}
+
+function goToStep(n){
+  currentStep = n;
+  document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+  document.querySelector(`.form-step[data-step="${n}"]`).classList.add('active');
+  document.querySelectorAll('.step-dot').forEach(d => d.classList.toggle('active', parseInt(d.dataset.step) <= n));
+  document.querySelector('.booking-form').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+document.getElementById('toStep2').addEventListener('click', ()=>{
+  const name = document.getElementById('fName').value.trim();
+  const phone = document.getElementById('fPhone').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
+  const age = document.getElementById('fAge').checked;
+  if(!name || !phone || !email){ toast('Please fill all fields', 'error'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('Please enter a valid email', 'error'); return; }
+  if(!age){ toast('Please confirm you are 18+', 'error'); return; }
+  goToStep(2);
+});
+document.getElementById('backTo1').addEventListener('click', ()=> goToStep(1));
+
+document.getElementById('toStep3').addEventListener('click', ()=>{
+  const desc = document.getElementById('fDesc').value.trim();
+  const terms = document.getElementById('fTerms').checked;
+  if(!desc){ toast('Please describe your tattoo', 'error'); return; }
+  if(!terms){ toast('Please accept the terms', 'error'); return; }
+  goToStep(3);
+});
+document.getElementById('backTo2').addEventListener('click', ()=> goToStep(2));
+
+document.querySelectorAll('.amount-card').forEach(card => {
+  card.addEventListener('click', ()=>{
+    document.querySelectorAll('.amount-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    const type = card.dataset.amount;
+    selectedAmountType = type;
+    const customBox = document.getElementById('customAmountBox');
+    const toStep4Btn = document.getElementById('toStep4');
+    if(type === 'booking'){
+      selectedAmount = content.bookingFee;
+      customBox.style.display = 'none';
+      toStep4Btn.disabled = false;
+    } else {
+      customBox.style.display = 'block';
+      const val = parseFloat(document.getElementById('customAmountInput').value);
+      if(val && val >= 1){ selectedAmount = val; toStep4Btn.disabled = false; }
+      else { selectedAmount = 0; toStep4Btn.disabled = true; }
+    }
+  });
+});
+document.getElementById('customAmountInput').addEventListener('input', (e)=>{
+  const val = parseFloat(e.target.value);
+  const btn = document.getElementById('toStep4');
+  if(val && val >= 1){ selectedAmount = val; btn.disabled = false; }
+  else { selectedAmount = 0; btn.disabled = true; }
+});
+document.getElementById('toStep4').addEventListener('click', ()=>{
+  if(selectedAmount < 1) return;
+  renderPaymentMethods();
+  goToStep(4);
+});
+document.getElementById('backTo3').addEventListener('click', ()=> goToStep(3));
+
+function renderPaymentMethods(){
+  const grid = document.getElementById('methodGrid');
+  grid.innerHTML = PAYMENT_METHODS.map(m => {
+    const p = content.payments[m.id];
+    const enabled = p && p.enabled !== false;
+    return `<div class="method-card ${enabled?'':'disabled'}" data-method="${m.id}" ${enabled?'':'title="Currently unavailable"'}>
+      <div class="method-icon ${m.iconClass}">${m.icon}</div>
+      <div class="method-info"><div class="method-name">${m.name}</div><div class="method-desc">${m.desc}${!enabled?' · Unavailable':''}</div></div>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.method-card').forEach(card => {
+    card.addEventListener('click', ()=>{
+      if(card.classList.contains('disabled')){ toast('This method is currently unavailable', 'error'); return; }
+      grid.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedMethod = card.dataset.method;
+      document.getElementById('confirmPayBtn').disabled = false;
+    });
+  });
+}
+
+document.getElementById('confirmPayBtn').addEventListener('click', async ()=>{
+  if(!selectedMethod) return;
+  try {
+    analytics.methods[selectedMethod].shown += 1;
+    analytics.methods[selectedMethod].totalAmount += selectedAmount;
+    await saveAnalytics();
+  } catch(e){ console.error(e); }
+  renderPaymentSlip();
+  goToStep(5);
+});
+
+function renderPaymentSlip(){
+  const m = PAYMENT_METHODS.find(x => x.id === selectedMethod);
+  const acc = content.payments[selectedMethod].account;
+  const ref = 'INK-' + Date.now().toString().slice(-8);
+  currentBookingRef = ref;
+  const amountLabel = selectedAmountType === 'booking' ? 'Booking Fee' : 'Full Payment';
+  document.getElementById('paymentSlip').innerHTML = `
+    <div class="slip-row"><div class="slip-label">Amount (${amountLabel})</div><div class="slip-value large">$${selectedAmount.toLocaleString()}</div></div>
+    <div class="slip-row"><div class="slip-label">Payment Method</div><div class="slip-value">${m.name}</div></div>
+    <div class="slip-row"><div class="slip-label">Reference</div><div class="slip-value" style="font-family:monospace;color:var(--accent)">${ref}</div></div>
+    <div style="margin-top:16px">
+      <div class="slip-label" style="margin-bottom:8px">Send Payment To</div>
+      <div class="account-box"><div class="account-text" id="accText">${acc}</div><button class="copy-btn" id="copyBtn">Copy</button></div>
+    </div>
+    <div class="slip-warning">⚠️ Please send exactly <strong>$${selectedAmount.toLocaleString()}</strong> to the account above. Include your reference <strong>${ref}</strong> in the payment note.</div>
+  `;
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    navigator.clipboard.writeText(acc).then(()=>{
+      this.textContent = 'Copied!'; this.classList.add('copied');
+      setTimeout(()=>{ this.textContent='Copy'; this.classList.remove('copied'); }, 2000);
+    });
+  });
+}
+
+document.getElementById('paidBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('paidBtn');
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+
+  try {
+    analytics.methods[selectedMethod].completed += 1;
+    analytics.totalBookings += 1;
+    analytics.totalRevenue += selectedAmount;
+    await saveAnalytics();
+  } catch(e){ console.error(e); }
+
+  const booking = {
+    id: currentBookingRef,
+    name: document.getElementById('fName').value.trim(),
+    phone: document.getElementById('fPhone').value.trim(),
+    email: document.getElementById('fEmail').value.trim(),
+    description: document.getElementById('fDesc').value.trim(),
+    images: uploadedImages.map(i => i.dataUrl),
+    imageNames: uploadedImages.map(i => i.name),
+    amount: selectedAmount,
+    amountType: selectedAmountType,
+    method: selectedMethod,
+    methodName: PAYMENT_METHODS.find(m => m.id === selectedMethod).name,
+    timestamp: new Date().toISOString(),
+    status: 'payment-sent'
+  };
+
+  try { bookings.bookings.push(booking); await saveBookings(); } catch(e){ console.error('Booking save error:', e); }
+
+  await sendBookingEmails(booking);
+
+  document.getElementById('bookingRef').textContent = currentBookingRef;
+  document.getElementById('successMsg').textContent = content.clientConfirmationMessage;
+  goToStep(6);
+
+  setTimeout(()=>{
+    document.getElementById('fName').value = '';
+    document.getElementById('fPhone').value = '';
+    document.getElementById('fEmail').value = '';
+    document.getElementById('fDesc').value = '';
+    document.getElementById('fAge').checked = false;
+    document.getElementById('fTerms').checked = false;
+    uploadedImages = [];
+    document.getElementById('previewGrid').innerHTML = '';
+    document.querySelectorAll('.amount-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('customAmountBox').style.display = 'none';
+    document.getElementById('customAmountInput').value = '';
+    selectedAmount = 0; selectedAmountType = null; selectedMethod = null;
+    btn.disabled = false; btn.textContent = "I've Sent the Payment ✓";
+    document.getElementById('toStep4').disabled = true;
+    document.getElementById('confirmPayBtn').disabled = true;
+  }, 500);
+});
+
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+uploadArea.addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files);
+  for(const file of files){
+    if(uploadedImages.length >= 5){ toast('Max 5 images', 'error'); break; }
+    if(file.size > 5 * 1024 * 1024){ toast(`${file.name} is too large (max 5MB)`, 'error'); continue; }
+    const dataUrl = await fileToDataUrl(file);
+    uploadedImages.push({ name: file.name, dataUrl });
+  }
+  renderPreviews();
+  fileInput.value = '';
+});
+function renderPreviews(){
+  const grid = document.getElementById('previewGrid');
+  grid.innerHTML = uploadedImages.map((img, i) => `<div class="preview-item"><img src="${img.dataUrl}" alt="${img.name}" /><div class="preview-remove" data-i="${i}">×</div></div>`).join('');
+  grid.querySelectorAll('.preview-remove').forEach(btn => {
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      uploadedImages.splice(parseInt(btn.dataset.i), 1);
+      renderPreviews();
+    });
+  });
+  uploadArea.classList.toggle('has-files', uploadedImages.length > 0);
+}
+function fileToDataUrl(file){
+  return new Promise((res, rej)=>{
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+async function sendBookingEmails(booking){
+  const artistEmail = content.artistEmail || TEST_EMAIL;
+  const clientEmail = TEST_EMAIL;
+
+  const artistHtml = `
+    <div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto;background:#fff">
+      <div style="background:#000;color:#fff;padding:28px;text-align:center"><div style="font-size:24px;font-weight:800;letter-spacing:.2em">INK<span style="color:#dc2626">.</span></div><div style="font-size:12px;letter-spacing:.2em;margin-top:8px;color:#dc2626">NEW BOOKING</div></div>
+      <div style="padding:32px">
+        <h2 style="margin:0 0 8px;font-size:22px">New Booking Received</h2>
+        <p style="color:#666;margin:0 0 24px">Reference: <strong style="color:#dc2626">${booking.id}</strong></p>
+        <div style="background:#f7f7f7;border-radius:10px;padding:20px;margin-bottom:20px">
+          <div style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#666;margin-bottom:12px;font-weight:600">Client Details</div>
+          <div style="display:grid;gap:10px">
+            <div><strong>Name:</strong> ${booking.name}</div>
+            <div><strong>Email:</strong> <a href="mailto:${booking.email}" style="color:#dc2626">${booking.email}</a></div>
+            <div><strong>Phone:</strong> <a href="tel:${booking.phone}" style="color:#dc2626">${booking.phone}</a></div>
+          </div>
+        </div>
+        <div style="background:#f7f7f7;border-radius:10px;padding:20px;margin-bottom:20px">
+          <div style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#666;margin-bottom:12px;font-weight:600">Tattoo Description</div>
+          <div style="line-height:1.6;white-space:pre-wrap">${booking.description.replace(/</g,'&lt;')}</div>
+        </div>
+        <div style="background:#f7f7f7;border-radius:10px;padding:20px;margin-bottom:20px">
+          <div style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#666;margin-bottom:12px;font-weight:600">Payment</div>
+          <div><strong>Amount:</strong> <span style="color:#dc2626;font-size:20px;font-weight:700">$${booking.amount}</span> (${booking.amountType === 'booking' ? 'Booking Fee' : 'Full Payment'})</div>
+          <div style="margin-top:6px"><strong>Method:</strong> ${booking.methodName}</div>
+        </div>
+        <div style="text-align:center;padding:20px;background:#000;color:#fff;border-radius:10px"><div style="font-size:12px;letter-spacing:.15em;color:#dc2626;margin-bottom:6px">NEXT STEP</div><div>Reply to the client at <strong>${booking.email}</strong> to schedule their appointment.</div></div>
+      </div>
+    </div>
+  `;
+
+  const attachments = booking.images.map((dataUrl, i) => {
+    const b64 = dataUrl.split(',')[1];
+    const mime = dataUrl.match(/data:(.*?);base64/)[1];
+    return { filename: booking.imageNames[i] || `reference-${i+1}.png`, content: b64, content_type: mime };
+  });
+
+  const artistEmailLog = {
+    id: 'EM-' + Date.now().toString().slice(-8) + 'A',
+    bookingId: booking.id,
+    recipientEmail: artistEmail,
+    emailType: 'artist_notification',
+    subject: `New Booking: ${booking.name} — $${booking.amount}`,
+    timestamp: new Date().toISOString(),
+    status: 'pending'
+  };
+
+  try {
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'artist',
+        to: artistEmail,
+        subject: artistEmailLog.subject,
+        html: artistHtml,
+        attachments: attachments,
+        bookingRef: booking.id
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Failed');
+    artistEmailLog.status = 'sent';
+  } catch(e){
+    console.error('Artist email failed:', e);
+    artistEmailLog.status = 'failed';
+    artistEmailLog.error = e.message;
+  }
+
+  const clientHtml = `
+    <div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto;background:#fff">
+      <div style="background:#000;color:#fff;padding:28px;text-align:center"><div style="font-size:24px;font-weight:800;letter-spacing:.2em">INK<span style="color:#dc2626">.</span></div></div>
+      <div style="padding:32px">
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(22,163,74,.1);color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px">✓</div>
+        <h2 style="text-align:center;margin:0 0 8px;font-size:22px">Booking Received</h2>
+        <p style="text-align:center;color:#666;margin:0 0 28px">Hi ${booking.name},</p>
+        <p style="line-height:1.7;color:#333">${content.clientConfirmationMessage.replace(/</g,'&lt;')}</p>
+        <div style="background:#f7f7f7;border-radius:10px;padding:20px;margin:24px 0">
+          <div style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#666;margin-bottom:10px;font-weight:600">Your Reference</div>
+          <div style="font-family:monospace;font-size:18px;font-weight:700;color:#dc2626">${booking.id}</div>
+        </div>
+        <p style="font-size:13px;color:#666;line-height:1.6">Keep this reference for your records. If you have any questions, reply to this email.</p>
+      </div>
+      <div style="background:#000;color:#fff;padding:20px;text-align:center;font-size:11px;letter-spacing:.15em">INK STUDIO · BY APPOINTMENT</div>
+    </div>
+  `;
+
+  const clientEmailLog = {
+    id: 'EM-' + Date.now().toString().slice(-8) + 'C',
+    bookingId: booking.id,
+    recipientEmail: clientEmail,
+    actualClientEmail: booking.email,
+    emailType: 'client_confirmation',
+    subject: `Booking Confirmation — ${booking.id}`,
+    timestamp: new Date().toISOString(),
+    status: 'pending'
+  };
+
+  try {
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'client',
+        to: clientEmail,
+        subject: clientEmailLog.subject,
+        html: clientHtml,
+        bookingRef: booking.id
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Failed');
+    clientEmailLog.status = 'sent';
+  } catch(e){
+    console.error('Client email failed:', e);
+    clientEmailLog.status = 'failed';
+    clientEmailLog.error = e.message;
+  }
+
+  try {
+    emails.emails.push(artistEmailLog, clientEmailLog);
+    await saveEmails();
+  } catch(e){ console.error('Email log save error:', e); }
+}
+
+function showAdminLogin(){
+  document.getElementById('adminLogin').style.display = 'block';
+  document.getElementById('adminDashboard').style.display = 'none';
+  document.getElementById('loginError').classList.remove('show');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+function showAdminDash(){
+  document.getElementById('adminLogin').style.display = 'none';
+  document.getElementById('adminDashboard').style.display = 'block';
+  populateAdmin();
+  renderAdminPaymentMethods();
+  renderAdminGallery();
+  renderAdminFaq();
+  renderBookingsTab();
+  renderAnalyticsTab();
+  renderEmailsTab();
+}
+
+document.getElementById('loginBtn').addEventListener('click', ()=>{
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if(u === ADMIN_USER && p === ADMIN_PASS){
+    sessionStorage.setItem('ink_admin','true');
+    showAdminDash();
+    toast('Welcome back', 'success');
+  } else {
+    document.getElementById('loginError').classList.add('show');
+  }
+});
+document.getElementById('loginPass').addEventListener('keypress', e=>{ if(e.key === 'Enter') document.getElementById('loginBtn').click(); });
+document.getElementById('logoutBtn').addEventListener('click', ()=>{ sessionStorage.removeItem('ink_admin'); showAdminLogin(); toast('Signed out'); });
+
+document.querySelectorAll('.admin-tab').forEach(tab => {
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
+    tab.classList.add('active');
+    document.querySelector(`.admin-tab-content[data-tab="${tab.dataset.tab}"]`).style.display = 'block';
+    if(tab.dataset.tab === 'bookings') renderBookingsTab();
+    if(tab.dataset.tab === 'analytics') renderAnalyticsTab();
+    if(tab.dataset.tab === 'emails') renderEmailsTab();
+  });
+});
+
+function populateAdmin(){
+  document.getElementById('adLocation').value = content.location;
+  document.getElementById('adHeroTitle').value = content.heroTitle;
+  document.getElementById('adHeroSub').value = content.heroSub;
+  document.getElementById('adAboutTitle').value = content.aboutTitle;
+  document.getElementById('adAboutBio').value = content.aboutBio;
+  document.getElementById('adBookingFee').value = content.bookingFee;
+  document.getElementById('adArtistEmail').value = content.artistEmail;
+  document.getElementById('adConfirmMsg').value = content.clientConfirmationMessage;
+}
+
+function renderAdminPaymentMethods(){
+  const c = document.getElementById('paymentMethodsAdmin');
+  c.innerHTML = PAYMENT_METHODS.map(m => {
+    const p = content.payments[m.id];
+    return `<div style="background:var(--bg-alt);border-radius:10px;padding:16px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="method-icon ${m.iconClass}" style="width:36px;height:36px;font-size:14px">${m.icon}</div>
+          <div><div style="font-weight:600;font-size:14px">${m.name}</div><div style="font-size:12px;color:var(--muted)">${m.desc}</div></div>
+        </div>
+        <div class="toggle-switch ${p.enabled !== false ? 'on':''}" data-method="${m.id}"></div>
+      </div>
+      <div class="admin-field" style="margin:0"><label>Account / Details</label><input type="text" data-account="${m.id}" value="${p.account}" /></div>
+    </div>`;
+  }).join('');
+  c.querySelectorAll('.toggle-switch').forEach(t => t.addEventListener('click', ()=> t.classList.toggle('on')));
+}
+
+function renderAdminGallery(){
+  const grid = document.getElementById('adminGalleryPreview');
+  grid.innerHTML = content.gallery.map((src, i) => `<div class="preview-item"><img src="${src}" /><div class="preview-remove" data-i="${i}">×</div></div>`).join('') || '<div style="color:var(--muted);font-size:13px;grid-column:1/-1;text-align:center;padding:20px">No images yet</div>';
+  grid.querySelectorAll('.preview-remove').forEach(btn => {
+    btn.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      content.gallery.splice(parseInt(btn.dataset.i), 1);
+      await saveContent();
+      renderAdminGallery();
+      renderPublic();
+      toast('Image removed');
+    });
+  });
+}
+
+const adminUploadArea = document.getElementById('adminUploadArea');
+const adminFileInput = document.getElementById('adminFileInput');
+adminUploadArea.addEventListener('click', ()=> adminFileInput.click());
+adminFileInput.addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files);
+  for(const file of files){
+    if(file.size > 5 * 1024 * 1024){ toast(`${file.name} too large`, 'error'); continue; }
+    const dataUrl = await fileToDataUrl(file);
+    content.gallery.push(dataUrl);
+  }
+  await saveContent();
+  renderAdminGallery();
+  renderPublic();
+  toast('Gallery updated', 'success');
+  adminFileInput.value = '';
+});
+
+function renderAdminFaq(){
+  const list = document.getElementById('faqAdminList');
+  list.innerHTML = content.faq.map((f, i) => `<div style="background:var(--bg-alt);border-radius:10px;padding:16px;margin-bottom:10px">
+    <div class="admin-field"><label>Question</label><input type="text" data-faq-q="${i}" value="${f.q.replace(/"/g,'&quot;')}" /></div>
+    <div class="admin-field"><label>Answer</label><textarea data-faq-a="${i}">${f.a}</textarea></div>
+    <button class="admin-save" style="background:var(--danger);padding:8px 14px;font-size:12px" data-faq-del="${i}">Delete</button>
+  </div>`).join('') || '<div style="color:var(--muted);text-align:center;padding:20px">No FAQ items</div>';
+  list.querySelectorAll('[data-faq-del]').forEach(btn => {
+    btn.addEventListener('click', async ()=>{
+      content.faq.splice(parseInt(btn.dataset.faqDel), 1);
+      await saveContent();
+      renderAdminFaq();
+      renderPublic();
+      toast('FAQ deleted');
+    });
+  });
+  list.querySelectorAll('[data-faq-q]').forEach(inp => {
+    inp.addEventListener('change', async ()=>{
+      const i = parseInt(inp.dataset.faqQ);
+      content.faq[i].q = inp.value;
+      await saveContent();
+      renderPublic();
+    });
+  });
+  list.querySelectorAll('[data-faq-a]').forEach(ta => {
+    ta.addEventListener('change', async ()=>{
+      const i = parseInt(ta.dataset.faqA);
+      content.faq[i].a = ta.value;
+      await saveContent();
+      renderPublic();
+    });
+  });
+}
+
+document.querySelectorAll('.admin-save[data-save]').forEach(btn => {
+  btn.addEventListener('click', async ()=>{
+    const key = btn.dataset.save;
+    const orig = btn.textContent;
+    btn.textContent = 'Saving...';
+    btn.disabled = true;
+    try {
+      if(key === 'hero'){
+        content.location = document.getElementById('adLocation').value.trim() || DEFAULT_CONTENT.location;
+        content.heroTitle = document.getElementById('adHeroTitle').value.trim() || DEFAULT_CONTENT.heroTitle;
+        content.heroSub = document.getElementById('adHeroSub').value.trim() || DEFAULT_CONTENT.heroSub;
+      } else if(key === 'about'){
+        content.aboutTitle = document.getElementById('adAboutTitle').value.trim() || DEFAULT_CONTENT.aboutTitle;
+        content.aboutBio = document.getElementById('adAboutBio').value.trim() || DEFAULT_CONTENT.aboutBio;
+      } else if(key === 'fee'){
+        const v = parseInt(document.getElementById('adBookingFee').value);
+        if(v && v >= 50) content.bookingFee = v;
+      } else if(key === 'email'){
+        content.artistEmail = document.getElementById('adArtistEmail').value.trim() || TEST_EMAIL;
+        content.clientConfirmationMessage = document.getElementById('adConfirmMsg').value.trim() || DEFAULT_CONTENT.clientConfirmationMessage;
+      } else if(key === 'methods'){
+        document.querySelectorAll('#paymentMethodsAdmin .toggle-switch').forEach(t => {
+          content.payments[t.dataset.method].enabled = t.classList.contains('on');
+        });
+        document.querySelectorAll('#paymentMethodsAdmin [data-account]').forEach(inp => {
+          content.payments[inp.dataset.account].account = inp.value.trim();
+        });
+      } else if(key === 'faqAdd'){
+        content.faq.push({ q:'New question?', a:'Your answer here.' });
+        await saveContent();
+        renderAdminFaq();
+        renderPublic();
+        btn.textContent = orig; btn.disabled = false;
+        toast('FAQ added', 'success');
+        return;
+      }
+      await saveContent();
+      renderPublic();
+      btn.textContent = '✓ Saved';
+      btn.classList.add('saved');
+      toast('Saved', 'success');
+      setTimeout(()=>{ btn.textContent = orig; btn.classList.remove('saved'); }, 1500);
+    } catch(e){
+      console.error(e);
+      btn.textContent = orig;
+      toast('Save failed', 'error');
+    }
+    btn.disabled = false;
+  });
+});
+
+function renderBookingsTab(){
+  const stats = document.getElementById('bookingsStats');
+  const list = document.getElementById('bookingsList');
+  const b = bookings.bookings || [];
+  const total = b.length;
+  const revenue = b.reduce((s,x)=>s+(x.amount||0),0);
+  const pending = b.filter(x=>x.status==='payment-sent').length;
+  stats.innerHTML = `
+    <div class="stat-card"><div class="stat-card-label">Total Bookings</div><div class="stat-card-value">${total}</div></div>
+    <div class="stat-card"><div class="stat-card-label">Total Revenue</div><div class="stat-card-value accent">$${revenue.toLocaleString()}</div></div>
+    <div class="stat-card"><div class="stat-card-label">Pending</div><div class="stat-card-value">${pending}</div></div>
+  `;
+  if(b.length === 0){ list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div>No bookings yet</div></div>'; return; }
+  const sorted = [...b].sort((a,c)=> new Date(c.timestamp) - new Date(a.timestamp));
+  list.innerHTML = `<div class="booking-row header"><div>Client</div><div>Contact</div><div>Amount</div><div>Date</div><div></div></div>
+    ${sorted.map(x => `<div class="booking-row">
+      <div class="booking-name">${x.name}</div>
+      <div><div style="font-size:12px">${x.email}</div><div style="font-size:12px;color:var(--muted)">${x.phone}</div></div>
+      <div class="booking-amount">$${x.amount}</div>
+      <div style="font-size:12px;color:var(--muted)">${new Date(x.timestamp).toLocaleDateString()}</div>
+      <div><button class="copy-btn" data-view="${x.id}" style="padding:6px 12px;font-size:11px">View</button></div>
+    </div>`).join('')}`;
+  list.querySelectorAll('[data-view]').forEach(btn => btn.addEventListener('click', ()=> viewBooking(btn.dataset.view)));
+}
+
+function viewBooking(id){
+  const b = bookings.bookings.find(x => x.id === id);
+  if(!b) return;
+  const w = window.open('', '_blank', 'width=700,height=800');
+  const imgs = b.images.map(src => `<img src="${src}" style="max-width:200px;border-radius:8px;margin:4px" />`).join('');
+  w.document.write(`<!DOCTYPE html><html><head><title>Booking ${b.id}</title><style>body{font-family:-apple-system,sans-serif;padding:40px;background:#f7f7f7;color:#0a0a0a}.card{max-width:600px;margin:0 auto;background:#fff;border-radius:14px;padding:32px;box-shadow:0 10px 40px rgba(0,0,0,.08)}h1{font-size:22px;margin-bottom:4px}.ref{font-family:monospace;color:#dc2626;font-weight:700;margin-bottom:20px}.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;font-size:14px}.row:last-child{border:none}.label{color:#666}.desc{background:#f7f7f7;padding:16px;border-radius:10px;margin:16px 0;white-space:pre-wrap;font-size:14px;line-height:1.6}</style></head><body><div class="card"><h1>${b.name}</h1><div class="ref">${b.id}</div><div class="row"><span class="label">Email</span><span>${b.email}</span></div><div class="row"><span class="label">Phone</span><span>${b.phone}</span></div><div class="row"><span class="label">Amount</span><span style="color:#dc2626;font-weight:700">$${b.amount}</span></div><div class="row"><span class="label">Type</span><span>${b.amountType === 'booking' ? 'Booking Fee' : 'Full Payment'}</span></div><div class="row"><span class="label">Method</span><span>${b.methodName}</span></div><div class="row"><span class="label">Date</span><span>${new Date(b.timestamp).toLocaleString()}</span></div><div class="desc">${b.description.replace(/</g,'&lt;')}</div>${imgs ? `<div style="margin-top:16px"><strong>Reference Images:</strong><div style="margin-top:8px">${imgs}</div></div>` : ''}</div><script>setTimeout(()=>window.print(),500)<\/script></body></html>`);
+  w.document.close();
+}
+
+function renderAnalyticsTab(){
+  const stats = document.getElementById('analyticsStats');
+  const breakdown = document.getElementById('analyticsBreakdown');
+  let totalShown=0, totalDone=0, totalAmt=0;
+  PAYMENT_METHODS.forEach(m => {
+    const a = analytics.methods[m.id];
+    totalShown += a.shown; totalDone += a.completed; totalAmt += a.totalAmount;
+  });
+  const conv = totalShown > 0 ? Math.round((totalDone/totalShown)*100) : 0;
+  stats.innerHTML = `
+    <div class="stat-card"><div class="stat-card-label">Total Bookings</div><div class="stat-card-value">${analytics.totalBookings}</div></div>
+    <div class="stat-card"><div class="stat-card-label">Total Revenue</div><div class="stat-card-value accent">$${analytics.totalRevenue.toLocaleString()}</div></div>
+    <div class="stat-card"><div class="stat-card-label">Payment Slips</div><div class="stat-card-value">${totalShown}</div></div>
+    <div class="stat-card"><div class="stat-card-label">Conversion</div><div class="stat-card-value">${conv}%</div></div>
+  `;
+  breakdown.innerHTML = `<div class="booking-row header"><div>Method</div><div>Shown</div><div>Completed</div><div>Amount</div></div>
+    ${PAYMENT_METHODS.map(m => {
+      const a = analytics.methods[m.id];
+      return `<div class="booking-row"><div style="display:flex;align-items:center;gap:10px"><div class="method-icon ${m.iconClass}" style="width:32px;height:32px;font-size:13px">${m.icon}</div>${m.name}</div><div>${a.shown}</div><div>${a.completed}</div><div class="booking-amount">$${a.totalAmount.toLocaleString()}</div></div>`;
+    }).join('')}`;
+}
+
+function renderEmailsTab(){
+  const list = document.getElementById('emailsList');
+  const e = emails.emails || [];
+  if(e.length === 0){ list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📧</div><div>No emails sent yet</div></div>'; return; }
+  const sorted = [...e].sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
+  list.innerHTML = sorted.map(x => `<div class="booking-row">
+    <div><div style="font-weight:600;font-size:13px">${x.subject}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${x.emailType === 'artist_notification' ? '🎨 Artist' : '👤 Client'} · ${x.bookingId}</div></div>
+    <div style="font-size:12px">${x.recipientEmail}</div>
+    <div style="font-size:12px">${new Date(x.timestamp).toLocaleDateString()}</div>
+    <div><span style="display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:600;background:${x.status==='sent'?'rgba(22,163,74,.1)':'rgba(220,38,38,.1)'};color:${x.status==='sent'?'var(--success)':'var(--danger)'}">${x.status === 'sent' ? '✓ Sent' : '✗ Failed'}</span></div>
+  </div>`).join('');
+}
+
+async function boot(){
+  try {
+    const [c, a, b, em] = await Promise.all([
+      cloudGet(CLOUD.CONTENT).catch(()=>null),
+      cloudGet(CLOUD.ANALYTICS).catch(()=>null),
+      cloudGet(CLOUD.BOOKINGS).catch(()=>null),
+      cloudGet(CLOUD.EMAILS).catch(()=>null)
+    ]);
+    if(c) content = { ...DEFAULT_CONTENT, ...c, payments:{ ...DEFAULT_CONTENT.payments, ...(c.payments||{}) }, social:{ ...DEFAULT_CONTENT.social, ...(c.social||{}) } };
+    if(a) analytics = { ...DEFAULT_ANALYTICS, ...a, methods:{ ...DEFAULT_ANALYTICS.methods, ...(a.methods||{}) } };
+    if(b) bookings = { bookings: Array.isArray(b.bookings) ? b.bookings : [] };
+    if(em) emails = { emails: Array.isArray(em.emails) ? em.emails : [] };
+    cloudReady = true;
+  } catch(e){ console.error('Boot error:', e); cloudReady = true; }
+  hideBoot();
+  renderPublic();
+  route();
+  analytics.pageViews += 1;
+  saveAnalytics().catch(()=>{});
+}
+
+boot();
+})();
+</script>
+</body>
+</html>
+
+
+              <script>
+                              // api/send-email.js
+// Vercel Serverless Function — handles email sending via Resend API
+// The RESEND_API_KEY must be set in Vercel Environment Variables
+
+const TEST_EMAIL = 'scminkofficial5@gmail.com';
+const FROM_EMAIL = 'onboarding@resend.dev';
+
+export default async function handler(req, res) {
+  // Only allow POST
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { type, to, subject, html, attachments, bookingRef } = req.body;
+
+    if (!to || !subject || !html) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Get API key from environment variable (set in Vercel dashboard)
+    const RESEND_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_KEY) {
+      console.error('RESEND_API_KEY environment variable is not set');
+      return res.status(500).json({ error: 'Server configuration error: missing API key' });
+    }
+
+    // Build the email payload
+    const emailPayload = {
+      from: FROM_EMAIL,
+      to: Array.isArray(to) ? to : [to],
+      subject: subject,
+      html: html
+    };
+
+    // Attach reference images if provided (only for artist emails)
+    if (attachments && attachments.length > 0) {
+      emailPayload.attachments = attachments.map(att => ({
+        filename: att.filename || 'reference.png',
+        content: att.content,
+        content_type: att.content_type || 'image/png'
+      }));
+    }
+
+    // Call Resend API
+    const resendResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${RESEND_KEY}`
+      },
+      body: JSON.stringify(emailPayload)
+    });
+
+    if (!resendResponse.ok) {
+      const errorData = await resendResponse.text();
+      console.error(`Resend API error (${type}):`, resendResponse.status, errorData);
+      return res.status(resendResponse.status).json({
+        error: `Email send failed: ${resendResponse.status}`,
+        details: errorData
+      });
+    }
+
+    const result = await resendResponse.json();
+
+    console.log(`✓ Email sent successfully [${type}] to ${to} — Booking: ${bookingRef}`);
+
+    return res.status(200).json({
+      success: true,
+      id: result.id,
+      type: type,
+      to: to
+    });
+
+  } catch (error) {
+    console.error('Server error:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+}
+
+              </script>
+                        </body>
+                        </html>
+                    
